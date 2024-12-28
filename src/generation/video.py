@@ -1,6 +1,8 @@
 import os
 import json
+from moviepy.video.VideoClip import TextClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from concurrent.futures import ProcessPoolExecutor
 
 
@@ -76,21 +78,85 @@ def cut_video_into_segments_parallel(
     return segment_paths
 
 
+def overlay_captions_on_video(
+    video_path,
+    caption_file,
+    output_path="data/scraped_data/final_videos",
+    font_size=70,
+    color="white",
+    stroke_color="black",
+    stroke_width=3,
+):
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"Video file not found: {video_path}")
+
+    if not os.path.exists(caption_file):
+        raise FileNotFoundError(f"Caption file not found: {caption_file}")
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    video = VideoFileClip(video_path)
+
+    with open(caption_file, "r") as f:
+        captions = json.load(f)
+
+    words = captions.get("words", [])
+    if not words:
+        raise ValueError("No words found in caption file.")
+
+    text_clips = []
+    for word_data in words:
+        word = word_data["word"]
+        start_time = word_data["start"]
+        end_time = word_data["end"]
+
+        text_clip = (
+            TextClip(
+                text=word,
+                font="/Library/Fonts/SF-Compact-Display-Regular.otf",
+                font_size=font_size,
+                color=color,
+                stroke_color=stroke_color,
+                stroke_width=stroke_width,
+                method="label",
+            )
+            .with_position("center")
+            .with_start(start_time)
+            .with_end(end_time)
+        )
+        text_clips.append(text_clip)
+
+    final_video = CompositeVideoClip([video] + text_clips)
+
+    output_filename = os.path.join(output_path, os.path.basename(video_path))
+    final_video.write_videofile(output_filename, codec="libx264", audio_codec="aac")
+
+    return output_filename
+
+
 if __name__ == "__main__":
-    pipeline_data = load_pipeline_data()
+    # pipeline_data = load_pipeline_data()
 
-    downloaded_videos = pipeline_data.get("downloaded_youtube_videos", [])
-    if not downloaded_videos:
-        raise ValueError("No downloaded videos found in pipeline data.")
+    # downloaded_videos = pipeline_data.get("downloaded_youtube_videos", [])
+    # if not downloaded_videos:
+    #     raise ValueError("No downloaded videos found in pipeline data.")
 
-    input_video = downloaded_videos[0]
-    print(f"Cutting video: {input_video}")
+    # input_video = downloaded_videos[0]
+    # print(f"Cutting video: {input_video}")
 
-    video_segments = cut_video_into_segments_parallel(
-        video_path=input_video,
-        segment_duration=60,
-    )
+    # video_segments = cut_video_into_segments_parallel(
+    #     video_path=input_video,
+    #     segment_duration=60,
+    # )
 
-    print("\nGenerated Video Segments:")
-    for segment in video_segments:
-        print(segment)
+    # print("\nGenerated Video Segments:")
+    # for segment in video_segments:
+    #     print(segment)
+
+    # video_file = video_segments[0]
+
+    video_file = "data/scraped_data/video_segments/segment_0_60.mp4"
+    caption_file = "data/scraped_data/captions/segment_1.mp3.json"
+
+    output_video = overlay_captions_on_video(video_file, caption_file)
