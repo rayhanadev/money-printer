@@ -11,7 +11,7 @@ TODO:
   - get captions from voice endpoint
 - [ ] generate video with moviepy
   - [x] split video into 1m clips
-  - [ ] add captions over video
+  - [x] add captions over video
   - [ ] add voiceover to video
 - [ ] queue for review
   - can be done with a filesystem queue
