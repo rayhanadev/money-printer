@@ -1,6 +1,7 @@
 import os
 import json
 from moviepy.video.VideoClip import TextClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from concurrent.futures import ProcessPoolExecutor
@@ -130,7 +131,32 @@ def overlay_captions_on_video(
     final_video = CompositeVideoClip([video] + text_clips)
 
     output_filename = os.path.join(output_path, os.path.basename(video_path))
-    final_video.write_videofile(output_filename, codec="libx264", audio_codec="aac")
+    final_video.write_videofile(
+        output_filename, codec="h264_videotoolbox", audio_codec="aac"
+    )
+
+    return output_filename
+
+
+def add_audio_to_video(video_path, audio_path, output_path="data/generated_videos"):
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"Video file not found: {video_path}")
+
+    if not os.path.exists(audio_path):
+        raise FileNotFoundError(f"Audio file not found: {audio_path}")
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    video = VideoFileClip(video_path)
+    audio = AudioFileClip(audio_path).subclipped(0, video.duration)
+
+    final_video = video.with_audio(audio)
+
+    output_filename = os.path.join(output_path, f"final_{os.path.basename(video_path)}")
+    final_video.write_videofile(
+        output_filename, codec="h264_videotoolbox", audio_codec="aac"
+    )
 
     return output_filename
 
@@ -157,6 +183,10 @@ if __name__ == "__main__":
     # video_file = video_segments[0]
 
     video_file = "data/scraped_data/video_segments/segment_0_60.mp4"
+    audio_file = "data/scraped_data/audio/segment_1.mp3"
     caption_file = "data/scraped_data/captions/segment_1.mp3.json"
 
     output_video = overlay_captions_on_video(video_file, caption_file)
+    final_video_with_audio = add_audio_to_video(output_video, audio_file)
+
+    print(f"Final video with audio: {final_video_with_audio}")

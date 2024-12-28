@@ -9,10 +9,10 @@ TODO:
   - openai voice (tts-1 model)
 - [x] generate captions
   - get captions from voice endpoint
-- [ ] generate video with moviepy
+- [x] generate video with moviepy
   - [x] split video into 1m clips
   - [x] add captions over video
-  - [ ] add voiceover to video
+  - [x] add voiceover to video
 - [ ] queue for review
   - can be done with a filesystem queue
 - [ ] publish to platforms (yt shorts, tiktok, reels)
