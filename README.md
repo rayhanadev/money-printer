@@ -1,10 +1,10 @@
 # Money Printer
 
 TODO:
-- [ ] scrape youtube videos
-  - can be done with `youtube-dl` and `youtube-search-python`
-- [ ] scrape reddit posts
-  - can be scraped
+- [x] scrape youtube videos
+  - uses pytube and google apis to search and download
+- [X] scrape reddit posts
+  - uses praw to scrape reddit data
 - [ ] generate voiceover
   - can be done with whisper and onyx voice
 - [ ] generate video, text superimposed over video
